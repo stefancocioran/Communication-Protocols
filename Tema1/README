@@ -1,0 +1,53 @@
+// Copyright (C) 2021 Cocioran Stefan 321 CA
+
+- Parsare tabela de rutare -
+
+Am implementat functia "get_rtable_size" pentru a afla cate entry-uri ar trebui 
+sa citesc si sa le introduc in tabel, apoi in functia "read_table" am citit campurile 
+fiecarui entry, le-am convertit in network format si le-am introdus in tabel.
+Pentru a gasi cea mai specifica cale din tabela de rutare, am sortat intrarile 
+crescator dupa prefix, apoi dupa masca cu functia "sort_table" si am facut un 
+binary search, avand o complexitate de O(log N).
+
+- Parsare tablea ARP - 
+
+Am creat o structura "arp_entry", avand doua campuri: adresa IP si adresa MAC. 
+Tabla ARP este alocata dinamic, pentru fiecare pachet de tip ARP primit, am 
+verificat daca IP-ul sursa se afla in tabela ARP. Daca nu se afla, redimensionez 
+tabela ARP si adaug o noua intrare.
+
+
+- Pachet de tip ARP -
+
+Daca primesc un pachet de tip ARP REQUEST, actualizez tabela ARP daca este cazul 
+si verific daca IP-ul destinatie coincide cu cel al router-ului. Daca coincide, 
+introduc in header-ul de ethernet adresa MAC a router-ului si raspund cu un ARP REPLY. 
+Daca adresa IP difera, inseamna ca ARP REQUST-ul nu este destinat router-ului 
+si se arunca pachetul.
+
+Daca este ARP REPLY, inseamna ca se primeste raspuns la o cerere, actualizez 
+tabela ARP. Daca reply-ul este destinat router-ului, verific daca exista pachet 
+care trebuie trimis, ii dau dequeue, introduc in header-ul ethernet adresa MAC 
+a destinatiei si il trimit. Daca adresa IP difera, inseamna ca ARP REPLY-ul nu 
+este destinat router-ului si se arunca pachetul.
+
+- Pachet IP sau ICMP - 
+
+Daca am primit un pachet care nu este de tip ARP, inseamna ca este IP sau ICMP.
+In acest caz, verific daca TTL-ul si checksum-ul sunt bune (altfel, trimit un 
+pachet corespunzator de tip ICMP ca raspuns) si updatez TTL si checksum. 
+Daca pachetul este destinat router-ului, raspund doar in cazul in care acesta 
+este de tip ICMP_ECHO. Daca adresa IP destinatie nu este cea a router-ului, 
+trebuie trimis mai departe. Se cauta cea mai specifica cale din tabela de rutare 
+"best_route" (daca nu exista, se trimite un pachet ICMP cu "destination unreachable"), 
+se afla adresa IP si adresa MAC pentru best_route si verific daca adresa IP pentru 
+urmatoarea destinatie se afla in tabela ARP. Daca se afla, actualizez header-ul 
+ethernet, adresa MAC sursa va fi cea a router-ului, iar cea destinatie va fi cea 
+a intrarii gasite in tabela ARP si trimit direct pachetul. In caz contrar, adaug 
+pachetul in queue, creez un nou pachet de tip ARP REQUEST si il trimit ca broadcast.
+
+
+Mentionez ca pe local imi trec toate testele, dar pe VMCK imi pica primul test (ARP 
+REPLY) insa nu am idee de ce. Am testat functionalitatea router-ului implementat cu 
+"ping"/"arping"/Wireshark si se comporta cum ar trebui. Va rog rulati manual 
+in caz ca pe vmchecker nu va trece iar, multumesc!
