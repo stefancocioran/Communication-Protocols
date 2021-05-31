@@ -1,0 +1,109 @@
+// Copyright (C) 2021 Cocioran Stefan 321 CA
+
+Pentru realizarea temei m-am folosit de scheletul laboratorului 10 pe care l-am 
+adaptat la cerintele enuntului temei.
+
+
+Se citesc de la tastatura comenzile utilizatorului pana la intalnirea comenzii de 
+"exit", cand se opreste executia programului. Daca se primeste o comanda care nu 
+este recunoscuta (invalida), se afiseaza mesajul "Unknown command!". Pentru restul 
+comenzilor primite (valide), am implementat cate o functie corespunzatoare, astfel:
+
+
+------------------------------- Functii Comenzi --------------------------------
+
+-> register_login - primeste ca parametru tipul comenzii care trebuie executata 
+(register/login). Se citesc de la tastatura username-ul si parola, se creeaza 
+payload-ul in format JSON cu ajutorul bibliotecii "parson" recomandata in enunt. 
+Se apeleaza functia "compute_post_request" care va returna un mesaj ce va fi trimis 
+catre server. Se primeste raspuns de la server si verific daca acesta contine 
+caracterul "{". Acest lucru inseamna ca serverul a intors o eroare, pe care o 
+afisez. Atat pentru "login" cat si pentru "register", daca acestea s-au efectuat 
+cu succes, nu vom gasi in raspuns acel caracacter. Se verifica daca comanda 
+efectuata cu succes este "login" pentru a se extrage un cookie, pe care functia 
+il va returna intrucat este nevoie sa il avem pastrat pentru a efectua cu succes 
+celelalte comenzi. Daca utilizatorul este deja logat si mai trimite o data comanda 
+"login", va primi un mesajul  ca este deja logat.Pentru logarea la alt cont, 
+utilizatorul trebuie sa iasa mai intai de pe contul curent.
+
+
+-> enter_library - primeste ca parametru cookie-ul obtinut in urma autentificarii.
+Cookie-ul este pus in mesajul care este trimis la server, iar atunci cand se 
+primeste raspuns acesta va fi in format JSON. Verific daca acesta contine o 
+eroare sau token-ul JWT de care avem nevoie. Daca serverul imi raspunde cu o 
+eroare, o afisez, altfel extrag token-ul si il returnez. 
+
+
+-> get_books - primeste ca paramteru token-ul JWT necesar pentru a demonstra ca 
+avem acces la biblioteca. Se formeaza un mesaj de tip GET la care se adauga token-ul, 
+se trimite catre server si atunci cand primesc raspuns verific daca acesta contine 
+caracacterul '['. Acest lucru inseamna ca raspunsul contine lista de carti ceruta, 
+o extrag si o afisez. Daca raspunul nu contine acel caracter, inseamna ca serverul 
+a raspuns cu o eroare, pe care o afisez.
+
+
+-> get_book - asemanator cu functia "get_books". Dupa ce se citeste de la tastatura 
+ID-ul cartii dorite, il introduc in URL. Daca comanda a fost realizata cu succes, 
+serverul va returna o lista cu un singur element (cartea dorita). Aceasta este 
+extrasa din lista si este afisata.
+
+
+-> add_book - primeste ca paramteru token-ul JWT necesar pentru a demonstra ca 
+avem acces la biblioteca. Se citesc de la tastatura toate campurile necesare pentru 
+a crea payload-ul in format JSON. Payload-ul si token-ul sunt pusi in mesajul care 
+va fi trimis la server, iar atunci cand primesc raspuns verific daca acesta contine 
+caracterul "{". Inseamna ca serverul a returnat o eroare, pe care o afisez. Daca 
+raspunsul nu contine acel caracter, inseamna ca a fost adaugata cu succes cartea.
+
+
+-> delete_book - primeste ca paramteru token-ul JWT necesar pentru a demonstra 
+ca avem acces la biblioteca. Se citeste de la tastatura ID-ul cartii pe care 
+dorim sa o stergem, il introduc in URL si se formeaza mesajul care va fi trimis 
+la server. Cand primesc raspuns verific daca acesta contine caracterul "{". 
+Inseamna ca serverul a returnat o eroare, pe care o afisez. Daca raspunsul nu 
+contine acel caracter, inseamna ca a fost eliminata cu succes cartea.
+
+
+-> logout - primeste ca parametru cookie-ul care dovedeste ca utilizatorul este 
+autentificat. Acest cookie este pus in mesajul care va fi trimis catre server. 
+Cand se primeste raspuns, verific daca acesta contine caracterul "{". nseamna ca 
+serverul a returnat o eroare, pe care o afisez. Daca raspunsul nu contine acel 
+caracter, inseamna ca utilizatorul s-a deconectat cu success.
+
+
+----------------------------- Functii Ajutatoare ------------------------------
+
+-> extract_json_list - extrage lista de carti primita ca raspuns de la server.
+Functia este imlementata folosind "strstr" si intoarce tot ce se afla dupa 
+aparitia caracacterului "[".
+
+-> extract_cookie_response - extrage cookie-ul din raspunsul dat de server.
+Primeste ca parametru intreg raspunsul si extrage tot continutul care se afla 
+intre doua stringuri date. In acest caz, cookie-ul se afla intre "Set-Cookie: " 
+si "\r\nDate:".
+
+-> extract_error - primeste ca parametru partea JSON din raspunsul dat de server.
+Cu ajutorul "strtok" verific daca raspunsul este o eroare si se returneaza mesajul 
+acesteia. Daca nu este eroare, se returneaza NULL.
+
+-> get_token - primeste ca parametru partea JSON din raspunsul dat de server.
+Raspunsul va fi de tipul {"token":"content"} si cu ajutorul "strtok" se extrage 
+doar continutul.
+
+             
+In fisierul "requests.c" din scheletul laboratorului 10, am realizat cateva 
+schimbari. Am adaugat inca un parametru pentru functiile de GET si POST pentru 
+a adauga la mesajul trimis catre server antetul pentru autorizare si token-ul 
+obtinut. Am implementat functia "compute_delete_request" care formeaza un mesaj 
+de tip DELETE, asemanator cu celelalte functii.
+
+
+Pentru parsarea raspunsului in format JSON primit de la server am folosit functia 
+"basic_extract_json_response" din scheletul laboratorului, precum si celelalte 
+functii ajutatoare mentionate mai sus, intrucat mi s-a parut mai simplu si 
+mai la indemana (avand la baza functii precum "strtok" si "strstr") decat 
+folosirea unei biblioteci de parsare.
+
+Referinte:
+1. Extragere cookie:
+https://stackoverflow.com/questions/24696113/how-to-find-text-between-two-strings-in-c  
