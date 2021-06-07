@@ -1,0 +1,13 @@
+Cocioran Stefan 321CA - Lab01 PC
+
+cat:
+  - am luat un buffer de 1024 octeti
+  - am setat cursorul la inceputul fisierului
+  - cat timp nu am ajuns la sfarsit, citesc linie cu linie si afisez
+
+tac:
+  - am luat un buffer de 1024 octeti
+  - am considerat 'chr' ca un buffer de dimensiune 1 in care retin fiecare caracter
+  - am setat cursorul la finalul fisierului
+  - cat timp nu am ajuns la inceputul fisierului, citesc fiecare caracter incepand de la final si il adaug in buffer
+  - atunci cand intalnesc '\n', inseamna ca am citit intreaga linie si afisez fiecare caracter din buffer in ordine inversa
